@@ -659,8 +659,16 @@ public class MediaPlaybackActivity
         if (mediaController == null) {
             return 500;
         }
-        long duration =
-                getMediaController().getMetadata().getLong(MediaMetadata.METADATA_KEY_DURATION);
+
+        //fix the FC when launched by file manager 2018.3.8
+        long duration;
+        MediaMetadata metadata = getMediaController().getMetadata();
+        if (null == metadata) {
+            return 500;
+        } else {
+            duration = metadata.getLong(MediaMetadata.METADATA_KEY_DURATION);
+        }
+
         long pos = mediaController.getPlaybackState().getPosition();
         if ((pos >= 0) && (duration > 0)) {
             mCurrentTime.setText(MusicUtils.makeTimeString(this, pos / 1000));
