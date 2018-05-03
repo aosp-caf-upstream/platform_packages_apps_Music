@@ -702,12 +702,24 @@ public class MediaPlaybackService extends MediaBrowserService implements Playbac
                     break;
                 case REPEAT_NONE:
                 default:
-                    // Increase the index
-                    mCurrentIndexOnQueue++;
-                    // Stop the queue when reaching the end
-                    if (mCurrentIndexOnQueue >= mPlayingQueue.size()) {
-                        handleStopRequest(null);
+                    // fix: when it is the last song, do not increase the index
+                    int nextPos = mCurrentIndexOnQueue + 1;
+                    if (nextPos >= mPlayingQueue.size()) {
+                        LogHelper.d(TAG, "onCompletion: this is the last song");
+                        if (null != mPlayback) {
+                            LogHelper.d(TAG, "onCompletion: stopped and seek to 0");
+                            mPlayback.setState(PlaybackState.STATE_STOPPED);
+                            mPlayback.seekTo(0);
+                            updatePlaybackState(null);
+
+                            // reset the delayed stop handler.
+                            mDelayedStopHandler.removeCallbacksAndMessages(null);
+                            mDelayedStopHandler.sendEmptyMessageDelayed(0, STOP_DELAY);
+                        }
                         return;
+                    } else {
+                        // Increase the index
+                        mCurrentIndexOnQueue++;
                     }
                     break;
             }
