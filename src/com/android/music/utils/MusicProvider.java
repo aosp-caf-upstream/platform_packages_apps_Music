@@ -90,6 +90,10 @@ public class MusicProvider {
         return mCurrentState == State.INITIALIZED;
     }
 
+    public boolean isInitializing() {
+        return mCurrentState == State.INITIALIZING;
+    }
+
     /**
      * Get an iterator over the list of artists
      *

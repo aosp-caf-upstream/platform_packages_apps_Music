@@ -163,7 +163,13 @@ public class MediaPlaybackService extends MediaBrowserService implements Playbac
             result.sendResult(null);
             return;
         }
-        if (!mMusicProvider.isInitialized()) {
+
+        /*
+         onLoadChildren can be re-entry multiple times.
+         if retrieveMediaAsync execute multiple times at the same time, it will trigger detach()
+         IllegalStateException when the first retrieveMediaAsync return success.
+        */
+        if (!mMusicProvider.isInitialized() && !mMusicProvider.isInitializing()) {
             // Use result.detach to allow calling result.sendResult from another thread:
             result.detach();
 
