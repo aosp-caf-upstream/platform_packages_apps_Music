@@ -275,6 +275,9 @@ public class MediaPlaybackActivity
         @Override
         public void onSessionDestroyed() {
             LogHelper.d(TAG, "Session destroyed. Need to fetch a new Media Session");
+
+            // finish this activity
+            finish();
         }
 
         @Override
