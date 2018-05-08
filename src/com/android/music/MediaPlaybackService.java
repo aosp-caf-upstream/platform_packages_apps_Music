@@ -699,6 +699,14 @@ public class MediaPlaybackService extends MediaBrowserService implements Playbac
                     break;
                 case REPEAT_CURRENT:
                     // Do not change the index
+
+                    // fix: need reset media player and seek to the beginning
+                    if (QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
+                        if (null != mPlayback) {
+                            LogHelper.d(TAG, "onCompletion: REPEAT_CURRENT reset request");
+                            mPlayback.reset();
+                        }
+                    }
                     break;
                 case REPEAT_NONE:
                 default:
