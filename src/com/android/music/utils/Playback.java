@@ -229,6 +229,15 @@ public class Playback implements AudioManager.OnAudioFocusChangeListener, OnComp
         }
     }
 
+    public void reset() {
+        // reset the Media Player, if it's available
+        if (mMediaPlayer != null) {
+            Log.d(TAG, "reset: mMediaPlayer.reset() is called");
+            mMediaPlayer.reset();
+            mCurrentPosition = 0;
+        }
+    }
+
     public void setCallback(Callback callback) {
         this.mCallback = callback;
     }

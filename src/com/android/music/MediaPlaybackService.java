@@ -163,7 +163,13 @@ public class MediaPlaybackService extends MediaBrowserService implements Playbac
             result.sendResult(null);
             return;
         }
-        if (!mMusicProvider.isInitialized()) {
+
+        /*
+         onLoadChildren can be re-entry multiple times.
+         if retrieveMediaAsync execute multiple times at the same time, it will trigger detach()
+         IllegalStateException when the first retrieveMediaAsync return success.
+        */
+        if (!mMusicProvider.isInitialized() && !mMusicProvider.isInitializing()) {
             // Use result.detach to allow calling result.sendResult from another thread:
             result.detach();
 
@@ -699,15 +705,35 @@ public class MediaPlaybackService extends MediaBrowserService implements Playbac
                     break;
                 case REPEAT_CURRENT:
                     // Do not change the index
+
+                    // fix: need reset media player and seek to the beginning
+                    if (QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
+                        if (null != mPlayback) {
+                            LogHelper.d(TAG, "onCompletion: REPEAT_CURRENT reset request");
+                            mPlayback.reset();
+                        }
+                    }
                     break;
                 case REPEAT_NONE:
                 default:
-                    // Increase the index
-                    mCurrentIndexOnQueue++;
-                    // Stop the queue when reaching the end
-                    if (mCurrentIndexOnQueue >= mPlayingQueue.size()) {
-                        handleStopRequest(null);
+                    // fix: when it is the last song, do not increase the index
+                    int nextPos = mCurrentIndexOnQueue + 1;
+                    if (nextPos >= mPlayingQueue.size()) {
+                        LogHelper.d(TAG, "onCompletion: this is the last song");
+                        if (null != mPlayback) {
+                            LogHelper.d(TAG, "onCompletion: stopped and seek to 0");
+                            mPlayback.setState(PlaybackState.STATE_STOPPED);
+                            mPlayback.seekTo(0);
+                            updatePlaybackState(null);
+
+                            // reset the delayed stop handler.
+                            mDelayedStopHandler.removeCallbacksAndMessages(null);
+                            mDelayedStopHandler.sendEmptyMessageDelayed(0, STOP_DELAY);
+                        }
                         return;
+                    } else {
+                        // Increase the index
+                        mCurrentIndexOnQueue++;
                     }
                     break;
             }
