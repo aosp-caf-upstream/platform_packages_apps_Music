@@ -387,7 +387,17 @@ public class MusicProvider {
             mContext.getContentResolver().delete(contentUri, null, null);
             return null;
         }
-        retriever.setDataSource(mContext, contentUri);
+
+        // fix: retrieve meta data fail case for broken music file
+        // ignore the music files which occur setDataSource exception
+        try {
+            retriever.setDataSource(mContext, contentUri);
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            retriever.release();
+            return null;
+        }
+
         String title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
         String album = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
         String artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
