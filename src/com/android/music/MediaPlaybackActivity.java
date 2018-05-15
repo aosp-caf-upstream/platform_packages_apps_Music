@@ -313,7 +313,7 @@ public class MediaPlaybackActivity
                     mediaController.registerCallback(mMediaControllerCallback);
                     MediaPlaybackActivity.this.setMediaController(mediaController);
                     mRepeatButton.setVisibility(View.VISIBLE);
-                    mShuffleButton.setVisibility(View.VISIBLE);
+                    mShuffleButton.setVisibility(View.INVISIBLE);
                     mQueueButton.setVisibility(View.VISIBLE);
                     setRepeatButtonImage(null);
                     setShuffleButtonImage();
