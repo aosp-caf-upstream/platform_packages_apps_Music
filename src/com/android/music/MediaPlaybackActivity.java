@@ -236,10 +236,16 @@ public class MediaPlaybackActivity
                     long now = SystemClock.elapsedRealtime();
                     if ((now - mLastSeekEventTime) > 250) {
                         mLastSeekEventTime = now;
-                        long duration = getMediaController().getMetadata().getLong(
-                                MediaMetadata.METADATA_KEY_DURATION);
-                        long position = duration * progress / 1000;
-                        getMediaController().getTransportControls().seekTo(position);
+
+                        MediaMetadata metadata = getMediaController().getMetadata();
+                        if (null != metadata) {
+                            long duration = metadata.getLong(MediaMetadata.METADATA_KEY_DURATION);
+                            long position = duration * progress / 1000;
+                            getMediaController().getTransportControls().seekTo(position);
+                        } else {
+                            LogHelper.d(TAG, "onProgressChanged: getMetaData return null");
+                        }
+
                         // trackball event, allow progress updates
                         if (!mmFromTouch) {
                             updateProgressBar();
@@ -269,6 +275,9 @@ public class MediaPlaybackActivity
         @Override
         public void onSessionDestroyed() {
             LogHelper.d(TAG, "Session destroyed. Need to fetch a new Media Session");
+
+            // finish this activity
+            finish();
         }
 
         @Override
@@ -559,8 +568,14 @@ public class MediaPlaybackActivity
             if (newpos < 0) {
                 // move to previous track
                 getMediaController().getTransportControls().skipToPrevious();
-                long duration = getMediaController().getMetadata().getLong(
-                        MediaMetadata.METADATA_KEY_DURATION);
+                long duration = 0;
+                MediaMetadata metadata = getMediaController().getMetadata();
+                if (null != metadata) {
+                    duration = metadata.getLong(MediaMetadata.METADATA_KEY_DURATION);
+                } else {
+                    LogHelper.d(TAG, "scanBackward: getMetaData return null");
+                }
+
                 mStartSeekPos += duration;
                 newpos += duration;
             }
@@ -586,8 +601,14 @@ public class MediaPlaybackActivity
                 delta = 50000 + (delta - 5000) * 40;
             }
             long newpos = mStartSeekPos + delta;
-            long duration =
-                    getMediaController().getMetadata().getLong(MediaMetadata.METADATA_KEY_DURATION);
+            long duration = 0;
+            MediaMetadata metadata = getMediaController().getMetadata();
+            if (null != metadata) {
+                duration = metadata.getLong(MediaMetadata.METADATA_KEY_DURATION);
+            } else {
+                LogHelper.d(TAG, "scanForward: getMetaData return null");
+            }
+
             if (newpos >= duration) {
                 // move to next track
                 getMediaController().getTransportControls().skipToNext();
